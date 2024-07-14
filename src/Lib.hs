@@ -116,8 +116,11 @@ run rule = run' rule 0 0 [Zero] 0
                                 Zero -> if printSymbol instruction == One then ones + 1 else ones
                                 One -> if printSymbol instruction == Zero then ones - 1 else ones
                             newTape = case direction instruction of
-                                Left' -> if tapePosition == 0 then Zero : printSymbol instruction : drop 1 tape else take tapePosition tape <> [printSymbol instruction] <> drop (tapePosition + 1) tape
-                                Right' -> if tapePosition == length tape - 1 then take tapePosition tape <> [printSymbol instruction] <> [Zero] else take tapePosition tape <> [printSymbol instruction] <> drop (tapePosition + 1) tape
+                                Left' -> if tapePosition == 0 then Zero : printSymbol instruction : tail tape else tapeBeforeCurrentPosition <> [printSymbol instruction] <> tapeAfterCurrentPosition
+                                Right' -> if tapePosition == length tape - 1 then tapeBeforeCurrentPosition <> [printSymbol instruction] <> [Zero] else tapeBeforeCurrentPosition <> [printSymbol instruction] <> tapeAfterCurrentPosition
+                                where
+                                    tapeBeforeCurrentPosition = take tapePosition tape
+                                    tapeAfterCurrentPosition = drop (tapePosition + 1) tape
                             newTapePosition = case direction instruction of
                                 Left' -> if tapePosition == 0 then 0 else tapePosition - 1
                                 Right' -> if tapePosition == length tape - 1 then length tape else tapePosition + 1
