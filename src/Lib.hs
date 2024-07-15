@@ -11,23 +11,21 @@ data Alphabet = Zero | One deriving (Show, Eq)
 
 data Direction = Left' | Right' deriving (Show, Eq)
 
-data Rule = Rule {
-    zeroIntruction :: Instruction,
-    oneInstruction :: Instruction
-} deriving (Show, Eq)
-
-data Instruction =
+data Rule =
     Halt
-  | Instruction {
-        printSymbol :: Alphabet,
-        direction :: Direction,
-        nextRule :: Rule
+    | Rule {
+        zeroIntruction :: Instruction,
+        oneInstruction :: Instruction
     } deriving (Show, Eq)
 
-haltRule = Rule { zeroIntruction = Halt, oneInstruction = Halt }
+data Instruction = Instruction {
+    printSymbol :: Alphabet,
+    direction :: Direction,
+    nextRule :: Rule
+} deriving (Show, Eq)
 
-oneRuleBeaverRuleAInstructionZero = Instruction { printSymbol = One, direction = Right', nextRule = haltRule }
-oneRuleBeaverRuleAInstructionOne = Halt
+oneRuleBeaverRuleAInstructionZero = Instruction { printSymbol = One, direction = Right', nextRule = Halt }
+oneRuleBeaverRuleAInstructionOne = Instruction { printSymbol = One, direction = Right', nextRule = Halt }
 oneRuleBeaverRuleA = Rule { zeroIntruction = oneRuleBeaverRuleAInstructionZero, oneInstruction = oneRuleBeaverRuleAInstructionOne }
 
 twoRuleBeaverRuleAInstructionZero = Instruction { printSymbol = One, direction = Right', nextRule = twoRuleBeaverRuleB }
@@ -35,11 +33,11 @@ twoRuleBeaverRuleAInstructionOne = Instruction { printSymbol = One, direction = 
 twoRuleBeaverRuleA = Rule { zeroIntruction = twoRuleBeaverRuleAInstructionZero, oneInstruction = twoRuleBeaverRuleAInstructionOne }
 
 twoRuleBeaverRuleBInstructionZero = Instruction { printSymbol = One, direction = Left', nextRule = twoRuleBeaverRuleA }
-twoRuleBeaverRuleBInstructionOne = Instruction { printSymbol = One, direction = Right', nextRule = haltRule }
+twoRuleBeaverRuleBInstructionOne = Instruction { printSymbol = One, direction = Right', nextRule = Halt }
 twoRuleBeaverRuleB = Rule { zeroIntruction = twoRuleBeaverRuleBInstructionZero, oneInstruction = twoRuleBeaverRuleBInstructionOne }
 
 xia0 = Instruction { printSymbol = One, direction = Right', nextRule = rb }
-xia1 = Instruction { printSymbol = One, direction = Right', nextRule = haltRule }
+xia1 = Instruction { printSymbol = One, direction = Right', nextRule = Halt }
 ra = Rule { zeroIntruction = xia0, oneInstruction = xia1 }
 
 xib0 = Instruction { printSymbol = One, direction = Left', nextRule = ra }
@@ -47,7 +45,7 @@ xib1 = Instruction { printSymbol = One, direction = Left', nextRule = ra }
 rb = Rule { zeroIntruction = xib0, oneInstruction = xib1 }
 
 threeRuleBeaverRuleAInstructionZero = Instruction { printSymbol = One, direction = Right', nextRule = threeRuleBeaverRuleB }
-threeRuleBeaverRuleAInstructionOne = Instruction { printSymbol = One, direction = Right', nextRule = haltRule }
+threeRuleBeaverRuleAInstructionOne = Instruction { printSymbol = One, direction = Right', nextRule = Halt }
 threeRuleBeaverRuleA = Rule { zeroIntruction = threeRuleBeaverRuleAInstructionZero, oneInstruction = threeRuleBeaverRuleAInstructionOne }
 
 threeRuleBeaverRuleBInstructionZero = Instruction { printSymbol = Zero, direction = Right', nextRule = threeRuleBeaverRuleC }
@@ -68,7 +66,7 @@ fourRuleBeaverRuleBInstructionZero = Instruction { printSymbol = One, direction 
 fourRuleBeaverRuleBInstructionOne = Instruction { printSymbol = Zero, direction = Left', nextRule = fourRuleBeaverRuleC }
 fourRuleBeaverRuleB = Rule { zeroIntruction = fourRuleBeaverRuleBInstructionZero, oneInstruction = fourRuleBeaverRuleBInstructionOne }
 
-fourRuleBeaverRuleCInstructionZero = Instruction { printSymbol = One, direction = Right', nextRule = haltRule }
+fourRuleBeaverRuleCInstructionZero = Instruction { printSymbol = One, direction = Right', nextRule = Halt }
 fourRuleBeaverRuleCInstructionOne = Instruction { printSymbol = One, direction = Left', nextRule = fourRuleBeaverRuleD }
 fourRuleBeaverRuleC = Rule { zeroIntruction = fourRuleBeaverRuleCInstructionZero, oneInstruction = fourRuleBeaverRuleCInstructionOne }
 
@@ -94,35 +92,37 @@ fiveRuleBeaverRuleDInstructionZero = Instruction { printSymbol = One, direction 
 fiveRuleBeaverRuleDInstructionOne = Instruction { printSymbol = One, direction = Left', nextRule = fiveRuleBeaverRuleD }
 fiveRuleBeaverRuleD = Rule { zeroIntruction = fiveRuleBeaverRuleDInstructionZero, oneInstruction = fiveRuleBeaverRuleDInstructionOne }
 
-fiveRuleBeaverRuleEInstructionZero = Instruction { printSymbol = One, direction = Right', nextRule = haltRule }
+fiveRuleBeaverRuleEInstructionZero = Instruction { printSymbol = One, direction = Right', nextRule = Halt }
 fiveRuleBeaverRuleEInstructionOne = Instruction { printSymbol = Zero, direction = Left', nextRule = fiveRuleBeaverRuleA }
 fiveRuleBeaverRuleE = Rule { zeroIntruction = fiveRuleBeaverRuleEInstructionZero, oneInstruction = fiveRuleBeaverRuleEInstructionOne }
 
-run :: (Num t1, Num t2) => Rule -> (t2, t1)
+run :: (Num t1, Num t2) => Rule -> (t2, t1, [Alphabet])
 run rule = run' rule 0 0 [Zero] 0
     where
         run' rule steps ones tape tapePosition =
-            case currentValue of
-                Zero -> runStep (zeroIntruction rule) steps ones tape tapePosition
-                One -> runStep (oneInstruction rule) steps ones tape tapePosition
-                where
-                    currentValue = tape !! tapePosition
-                    runStep instruction steps ones tape tapePosition = case instruction of
-                        Halt -> (steps, ones)
-                        Instruction _ _ nextRule' -> run' nextRule' newSteps newOnes newTape newTapePosition
+            case rule of
+                Halt -> (steps, ones, tape)
+                Rule zeroIntruction oneInstruction ->
+                    case currentValue of
+                        Zero -> runStep zeroIntruction steps ones tape tapePosition
+                        One -> runStep oneInstruction steps ones tape tapePosition
                         where
-                            newSteps = steps + 1
-                            newOnes = case currentValue of
-                                Zero -> if printSymbol instruction == One then ones + 1 else ones
-                                One -> if printSymbol instruction == Zero then ones - 1 else ones
-                            newTape = case direction instruction of
-                                Left' -> if tapePosition == 0 then Zero : printSymbol instruction : tail tape else tapeBeforeCurrentPosition <> [printSymbol instruction] <> tapeAfterCurrentPosition
-                                Right' -> if tapePosition == length tape - 1 then tapeBeforeCurrentPosition <> [printSymbol instruction] <> [Zero] else tapeBeforeCurrentPosition <> [printSymbol instruction] <> tapeAfterCurrentPosition
+                            currentValue = tape !! tapePosition
+                            runStep instruction steps ones tape tapePosition =  run' nextRule' newSteps newOnes newTape newTapePosition
                                 where
-                                    tapeBeforeCurrentPosition = take tapePosition tape
-                                    tapeAfterCurrentPosition = drop (tapePosition + 1) tape
-                            newTapePosition = case direction instruction of
-                                Left' -> if tapePosition == 0 then 0 else tapePosition - 1
-                                Right' -> if tapePosition == length tape - 1 then length tape else tapePosition + 1
+                                    nextRule' = nextRule instruction
+                                    newSteps = steps + 1
+                                    newOnes = case currentValue of
+                                        Zero -> if printSymbol instruction == One then ones + 1 else ones
+                                        One -> if printSymbol instruction == Zero then ones - 1 else ones
+                                    newTape = case direction instruction of
+                                        Left' -> if tapePosition == 0 then Zero : printSymbol instruction : tail tape else tapeBeforeCurrentPosition <> [printSymbol instruction] <> tapeAfterCurrentPosition
+                                        Right' -> if tapePosition == length tape - 1 then tapeBeforeCurrentPosition <> [printSymbol instruction] <> [Zero] else tapeBeforeCurrentPosition <> [printSymbol instruction] <> tapeAfterCurrentPosition
+                                        where
+                                            tapeBeforeCurrentPosition = take tapePosition tape
+                                            tapeAfterCurrentPosition = drop (tapePosition + 1) tape
+                                    newTapePosition = case direction instruction of
+                                        Left' -> if tapePosition == 0 then 0 else tapePosition - 1
+                                        Right' -> if tapePosition == length tape - 1 then length tape else tapePosition + 1
 
 
