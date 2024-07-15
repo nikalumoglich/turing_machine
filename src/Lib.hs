@@ -96,7 +96,7 @@ fiveRuleBeaverRuleEInstructionZero = Instruction { printSymbol = One, direction 
 fiveRuleBeaverRuleEInstructionOne = Instruction { printSymbol = Zero, direction = Left', nextRule = fiveRuleBeaverRuleA }
 fiveRuleBeaverRuleE = Rule { zeroIntruction = fiveRuleBeaverRuleEInstructionZero, oneInstruction = fiveRuleBeaverRuleEInstructionOne }
 
-run :: (Num t1, Num t2) => Rule -> (t2, t1, [Alphabet])
+run :: Rule -> (Integer, Integer, [Alphabet])
 run rule = run' rule 0 0 [Zero] 0
     where
         run' rule steps ones tape tapePosition =
