@@ -1,3 +1,7 @@
+{-# OPTIONS_GHC -Wno-name-shadowing #-}
+{-# OPTIONS_GHC -Wno-missing-signatures #-}
+{-# OPTIONS_GHC -Wno-partial-fields #-}
+
 module Lib
     ( run
     , oneRuleBeaverRuleA
@@ -28,6 +32,8 @@ oneRuleBeaverRuleAInstructionZero = Instruction { printSymbol = One, direction =
 oneRuleBeaverRuleAInstructionOne = Instruction { printSymbol = One, direction = Right', nextRule = Halt }
 oneRuleBeaverRuleA = Rule { zeroIntruction = oneRuleBeaverRuleAInstructionZero, oneInstruction = oneRuleBeaverRuleAInstructionOne }
 
+------------------------
+
 twoRuleBeaverRuleAInstructionZero = Instruction { printSymbol = One, direction = Right', nextRule = twoRuleBeaverRuleB }
 twoRuleBeaverRuleAInstructionOne = Instruction { printSymbol = One, direction = Left', nextRule = twoRuleBeaverRuleB }
 twoRuleBeaverRuleA = Rule { zeroIntruction = twoRuleBeaverRuleAInstructionZero, oneInstruction = twoRuleBeaverRuleAInstructionOne }
@@ -36,13 +42,7 @@ twoRuleBeaverRuleBInstructionZero = Instruction { printSymbol = One, direction =
 twoRuleBeaverRuleBInstructionOne = Instruction { printSymbol = One, direction = Right', nextRule = Halt }
 twoRuleBeaverRuleB = Rule { zeroIntruction = twoRuleBeaverRuleBInstructionZero, oneInstruction = twoRuleBeaverRuleBInstructionOne }
 
-xia0 = Instruction { printSymbol = One, direction = Right', nextRule = rb }
-xia1 = Instruction { printSymbol = One, direction = Right', nextRule = Halt }
-ra = Rule { zeroIntruction = xia0, oneInstruction = xia1 }
-
-xib0 = Instruction { printSymbol = One, direction = Left', nextRule = ra }
-xib1 = Instruction { printSymbol = One, direction = Left', nextRule = ra }
-rb = Rule { zeroIntruction = xib0, oneInstruction = xib1 }
+-----------------------
 
 threeRuleBeaverRuleAInstructionZero = Instruction { printSymbol = One, direction = Right', nextRule = threeRuleBeaverRuleB }
 threeRuleBeaverRuleAInstructionOne = Instruction { printSymbol = One, direction = Right', nextRule = Halt }
@@ -116,8 +116,16 @@ run rule = run' rule 0 0 [Zero] 0
                                         Zero -> if printSymbol instruction == One then ones + 1 else ones
                                         One -> if printSymbol instruction == Zero then ones - 1 else ones
                                     newTape = case direction instruction of
-                                        Left' -> if tapePosition == 0 then Zero : printSymbol instruction : tail tape else tapeBeforeCurrentPosition <> [printSymbol instruction] <> tapeAfterCurrentPosition
-                                        Right' -> if tapePosition == length tape - 1 then tapeBeforeCurrentPosition <> [printSymbol instruction] <> [Zero] else tapeBeforeCurrentPosition <> [printSymbol instruction] <> tapeAfterCurrentPosition
+                                        Left' ->
+                                            if tapePosition == 0 then 
+                                                Zero : printSymbol instruction : tail tape 
+                                            else
+                                                tapeBeforeCurrentPosition <> [printSymbol instruction] <> tapeAfterCurrentPosition
+                                        Right' -> 
+                                            if tapePosition == length tape - 1 then
+                                                tapeBeforeCurrentPosition <> [printSymbol instruction] <> [Zero]
+                                            else
+                                                tapeBeforeCurrentPosition <> [printSymbol instruction] <> tapeAfterCurrentPosition
                                         where
                                             tapeBeforeCurrentPosition = take tapePosition tape
                                             tapeAfterCurrentPosition = drop (tapePosition + 1) tape
